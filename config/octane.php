@@ -174,6 +174,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mercure Connections
+    |--------------------------------------------------------------------------
+    |
+    | Configure Mercure transport connections used by the mercure_publish()
+    | helper when running under FrankenPHP + Octane.
+    |
+    */
+
+    'mercure' => [
+        'connections' => [
+            'local' => [
+                'transport_url' => env('MERCURE_TRANSPORT_URL'),
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | File Watching
     |--------------------------------------------------------------------------
     |

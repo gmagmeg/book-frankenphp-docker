@@ -119,3 +119,37 @@ docker compose exec app php artisan octane:reload
 ```
 
 その後、`/debug/boot-check` を再度叩いて確認してください。
+
+## 5. Mercure SSE デモ（FrankenPHP公式Mercure連携）
+
+`https://frankenphp.dev/docs/mercure/` のLaravel Octane向け設定に合わせて、以下を追加しています。
+
+- `GET /mercure/sse-demo` SSE受信 + API実行ページ
+- `POST /api/mercure/publish` Mercureへ配信するAPI（`mercure_publish()` 呼び出し）
+
+### 必要な環境変数
+
+`.env` に以下を設定してください（`.env.example` には追記済み）。
+
+```dotenv
+OCTANE_SERVER=frankenphp
+MERCURE_TRANSPORT_URL=mercure://publisher:!ChangeThisMercureHubJWTSecretKey!@localhost/.well-known/mercure
+OCTANE_MERCURE_PUBLISHER_JWT_KEY=!ChangeThisMercureHubJWTSecretKey!
+OCTANE_MERCURE_SUBSCRIBER_JWT_KEY=!ChangeThisMercureHubJWTSecretKey!
+OCTANE_MERCURE_EXTRA_DIRECTIVES=anonymous
+```
+
+### 動作確認
+
+1. 設定反映のため再起動:
+
+```bash
+docker compose down
+docker compose up -d --build
+```
+
+2. ページを開く:
+
+- [http://127.0.0.1:8100/mercure/sse-demo](http://127.0.0.1:8100/mercure/sse-demo)
+
+3. `Connect SSE` を押し、`POST /api/mercure/publish` を実行すると、同ページの Logs に受信イベントが表示されます。

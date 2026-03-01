@@ -1,0 +1,50 @@
+# Laravel
+/bootstrap/cache/*.php
+/storage/*.key
+/vendor
+
+# Environment
+.env
+.env.backup
+.env.production
+.env.*.local
+*.env
+
+# Composer
+composer.phar
+
+# Node / Vite
+/node_modules
+/public/build
+/public/hot
+npm-debug.log
+yarn-error.log
+
+# FrankenPHP / Octane
+frankenphp
+/Caddyfile
+/Caddyfile.local
+
+# Testing
+.phpunit.result.cache
+coverage/
+
+# Docker
+.docker/
+
+# Database
+/database/database.sqlite
+/database/*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude
+.claude/

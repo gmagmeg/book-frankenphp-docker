@@ -19,6 +19,7 @@ class MercureController extends Controller
 
     public function publish(Request $request): JsonResponse
     {
+        // Mercure拡張が有効かを先に確認し、未有効なら 500 を返す。
         if (! function_exists('mercure_publish')) {
             return response()->json([
                 'ok' => false,
@@ -26,6 +27,24 @@ class MercureController extends Controller
             ], 500);
         }
 
+        // リクエストの検証と、publish実行に必要な値(topic/payload/options)を組み立てる。
+        ['topic' => $topic, 'payload' => $payload, 'options' => $options] = $this->preparePublishRequest($request);
+
+        // Mercureへメッセージを送信する。
+        $result = mercure_publish($topic, $payload, $options);
+
+        // クライアント向けに、送信内容と結果をJSONで返却する。
+        return response()->json([
+            'ok' => true,
+            'topic' => $topic,
+            'payload' => $payload,
+            'options' => $options,
+            'result' => $result,
+        ]);
+    }
+
+    private function preparePublishRequest(Request $request): array
+    {
         $validated = $request->validate([
             'topic' => ['required', 'string', 'max:2048'],
             'message' => ['nullable', 'string', 'max:5000'],
@@ -52,14 +71,10 @@ class MercureController extends Controller
             $payload = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         }
 
-        $result = mercure_publish($validated['topic'], $payload, $options);
-
-        return response()->json([
-            'ok' => true,
+        return [
             'topic' => $validated['topic'],
             'payload' => $payload,
             'options' => $options,
-            'result' => $result,
-        ]);
+        ];
     }
 }

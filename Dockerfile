@@ -16,6 +16,7 @@ COPY . /app
 RUN composer install --no-interaction --prefer-dist \
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
+COPY docker/php.ini /usr/local/etc/php/conf.d/zzz-local.ini
 COPY docker/start-container.sh /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/start-container
 

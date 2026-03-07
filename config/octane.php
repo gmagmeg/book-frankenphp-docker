@@ -183,11 +183,9 @@ return [
     */
 
     'mercure' => [
-        'connections' => [
-            'local' => [
-                'transport_url' => env('MERCURE_TRANSPORT_URL'),
-            ],
-        ],
+        'publisher_jwt_key' => env('OCTANE_MERCURE_PUBLISHER_JWT_KEY'),
+        'subscriber_jwt_key' => env('OCTANE_MERCURE_SUBSCRIBER_JWT_KEY'),
+        'anonymous' => true,
     ],
 
     /*

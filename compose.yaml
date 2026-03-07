@@ -12,6 +12,7 @@ services:
       - path: .env
         required: false
     environment:
+      CHOKIDAR_USEPOLLING: "1"
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
@@ -20,6 +21,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - ./:/app
+      - caddy_data:/data
     depends_on:
       db:
         condition: service_healthy
@@ -46,3 +48,5 @@ services:
 volumes:
   book_frankenphp_pg_data:
     name: book-frankenphp-pg-data
+  caddy_data:
+    name: book-frankenphp-caddy-data

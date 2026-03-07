@@ -21,6 +21,10 @@ class MercureController extends Controller
             rtrim((string) config('app.url'), '/').'/mercure/demo/topic'
         );
 
+        // FrankenPHP の HTTP 103 Early Hints でMercureハブへの接続を事前通知する。
+        header('Link: </.well-known/mercure>; rel=preconnect');
+        headers_send(103);
+        
         return view('mercure.sse-demo', [
             'defaultTopic' => $defaultTopic,
         ]);
@@ -53,12 +57,10 @@ class MercureController extends Controller
     public function publish(Request $request): JsonResponse
     {
         // Mercure拡張が有効かを先に確認し、未有効なら 500 を返す。
-        if (! function_exists('mercure_publish')) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'mercure_publish() is not available. Confirm FrankenPHP Mercure is enabled and OCTANE_MERCURE_* env vars are set.',
-            ], 500);
-        }
+        return response()->json([
+            'ok' => false,
+            'message' => 'mercure_publish() is not available. Confirm FrankenPHP Mercure is enabled and OCTANE_MERCURE_* env vars are set.',
+        ], 500);
 
         // リクエストの検証と、publish実行に必要な値(topic/payload/options)を組み立てる。
         ['topic' => $topic, 'payload' => $payload, 'options' => $options] = $this->preparePublishRequest($request);

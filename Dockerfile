@@ -1,5 +1,7 @@
 FROM dunglas/frankenphp:1-php8.4-bookworm
 
+RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
+
 RUN install-php-extensions \
     pcntl \
     pdo_pgsql \
@@ -14,6 +16,7 @@ WORKDIR /app
 COPY . /app
 
 RUN composer install --no-interaction --prefer-dist \
+    && npm install \
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 COPY docker/php.ini /usr/local/etc/php/conf.d/zzz-local.ini

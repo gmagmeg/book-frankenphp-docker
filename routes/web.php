@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\Octane\NgPatterns\Pattern1\TenantController;
-use App\Http\Controllers\Octane\NgPatterns\Pattern2\RequestSingletonCheckController;
-use App\Http\Controllers\Octane\NgPatterns\Pattern2\RequestSingletonPageController;
 use App\Http\Controllers\MercureController;
 use App\Providers\AppServiceProvider;
 use Illuminate\Support\Facades\Route;
@@ -17,10 +14,6 @@ Route::get('/debug/boot-check', function () {
         'probe' => AppServiceProvider::recordBootProbeRequest(),
     ]);
 });
-
-Route::get('/debug/octane/ng-patterns/1/static-tenant', TenantController::class);
-Route::get('/debug/octane/ng-patterns/2/request-singleton', RequestSingletonPageController::class);
-Route::get('/debug/octane/ng-patterns/2/request-singleton/check', RequestSingletonCheckController::class);
 
 Route::get('/mercure/sse-demo', [MercureController::class, 'page']);
 Route::get('/mercure/receiver', [MercureController::class, 'receiver']);

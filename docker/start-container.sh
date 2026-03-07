@@ -11,8 +11,14 @@ if [ ! -f vendor/autoload.php ]; then
   composer install --no-interaction --prefer-dist
 fi
 
+if [ ! -d node_modules ]; then
+  npm install
+fi
+
 exec php artisan octane:frankenphp \
-  --host=0.0.0.0 \
+  --host=localhost \
   --port="${APP_PORT:-8000}" \
   --workers="${OCTANE_WORKERS:-4}" \
-  --max-requests="${OCTANE_MAX_REQUESTS:-500}"
+  --max-requests="${OCTANE_MAX_REQUESTS:-500}" \
+  --https \
+  --watch

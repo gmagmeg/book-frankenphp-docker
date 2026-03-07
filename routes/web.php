@@ -23,5 +23,6 @@ Route::get('/debug/octane/ng-patterns/2/request-singleton', RequestSingletonPage
 Route::get('/debug/octane/ng-patterns/2/request-singleton/check', RequestSingletonCheckController::class);
 
 Route::get('/mercure/sse-demo', [MercureController::class, 'page']);
+Route::get('/mercure/receiver', [MercureController::class, 'receiver']);
 Route::post('/api/mercure/publish', [MercureController::class, 'publish'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

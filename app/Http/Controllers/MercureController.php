@@ -8,15 +8,48 @@ use Illuminate\View\View;
 
 class MercureController extends Controller
 {
+    /**
+     * Mercureデモ画面を表示する。
+     *
+     * @param Request $request
+     * @return View
+     */
     public function page(Request $request): View
     {
-        $defaultTopic = $request->query('topic', rtrim((string) config('app.url'), '/').'/mercure/demo/topic');
+        $defaultTopic = $request->query(
+            'topic',
+            rtrim((string) config('app.url'), '/').'/mercure/demo/topic'
+        );
 
         return view('mercure.sse-demo', [
             'defaultTopic' => $defaultTopic,
         ]);
     }
 
+    /**
+     * publishされたメッセージを受信する画面を表示する。
+     *
+     * @param Request $request
+     * @return View
+     */
+    public function receiver(Request $request): View
+    {
+        $defaultTopic = $request->query(
+            'topic',
+            rtrim((string) config('app.url'), '/').'/mercure/demo/topic'
+        );
+
+        return view('mercure.receiver', [
+            'defaultTopic' => $defaultTopic,
+        ]);
+    }
+
+    /**
+     * Mercureにメッセージを公開し、送信結果をJSONで返す。
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function publish(Request $request): JsonResponse
     {
         // Mercure拡張が有効かを先に確認し、未有効なら 500 を返す。
@@ -43,6 +76,14 @@ class MercureController extends Controller
         ]);
     }
 
+    /**
+     * publish用リクエストを検証し、Mercure送信用データへ整形する。
+     *
+     * @param Request $request
+     * @return array{topic:string,payload:string,options:array<string,mixed>}
+     *
+     * @throws \JsonException
+     */
     private function preparePublishRequest(Request $request): array
     {
         $validated = $request->validate([

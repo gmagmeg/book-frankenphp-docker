@@ -1,0 +1,118 @@
+:root {
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f4f7ff 0%, #ecfdf5 100%);
+    color: #0f172a;
+    padding: 24px;
+}
+.container {
+    max-width: 980px;
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+}
+.card {
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    padding: 16px;
+}
+.title {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.2;
+}
+.description {
+    margin: 8px 0 0;
+    color: #334155;
+    font-size: 14px;
+}
+.status {
+    margin: 8px 0 0;
+    color: #1e3a8a;
+    font-size: 14px;
+    font-weight: 600;
+}
+.row {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+}
+label {
+    font-size: 14px;
+    color: #334155;
+    font-weight: 600;
+}
+input, button {
+    font: inherit;
+}
+input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #f8fafc;
+}
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+button {
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #fff;
+    background: #0369a1;
+    cursor: pointer;
+    font-weight: 600;
+}
+button.secondary {
+    background: #334155;
+}
+button.ghost {
+    background: #059669;
+}
+.messages {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    max-height: 62vh;
+    overflow: auto;
+}
+.message {
+    border: 1px solid #d1fae5;
+    border-radius: 10px;
+    background: #f0fdfa;
+    padding: 10px 12px;
+    display: grid;
+    gap: 6px;
+}
+.meta {
+    font-size: 12px;
+    color: #334155;
+}
+.payload {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 13px;
+    color: #0f172a;
+}
+.empty {
+    color: #64748b;
+    font-size: 14px;
+}
+a {
+    color: #0f766e;
+    font-weight: 600;
+}

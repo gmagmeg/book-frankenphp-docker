@@ -64,7 +64,14 @@ class MercureController extends Controller
         ['topic' => $topic, 'payload' => $payload, 'options' => $options] = $this->preparePublishRequest($request);
 
         // Mercureへメッセージを送信する。
-        $result = mercure_publish($topic, $payload, $options);
+        $result = mercure_publish(
+            $topic,
+            $payload,
+            (bool) ($options['private'] ?? false),
+            (string) ($options['id'] ?? ''),
+            (string) ($options['type'] ?? ''),
+            (int) ($options['retry'] ?? -1),
+        );
 
         // クライアント向けに、送信内容と結果をJSONで返却する。
         return response()->json([

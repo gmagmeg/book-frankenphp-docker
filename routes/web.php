@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\MercureController;
 use App\Providers\AppServiceProvider;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,9 @@ Route::get('/debug/boot-check', function () {
         'probe' => AppServiceProvider::recordBootProbeRequest(),
     ]);
 });
+
+Route::get('/download/{filename}', [DownloadController::class, 'download'])
+    ->where('filename', '[a-zA-Z0-9._-]+');
 
 Route::get('/mercure/sse-demo', [MercureController::class, 'page']);
 Route::get('/mercure/receiver', [MercureController::class, 'receiver']);

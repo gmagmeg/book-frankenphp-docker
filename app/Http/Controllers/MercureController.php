@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CsvGeneratorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MercureController extends Controller
 {
+    public function __construct(private readonly CsvGeneratorService $csvGenerator) {}
     /**
      * Mercureデモ画面を表示する。
      *
@@ -56,67 +58,21 @@ class MercureController extends Controller
      */
     public function publish(Request $request): JsonResponse
     {
-
-        $csvFilePath = $this->generateCsv();
-        // リクエストの検証と、publish実行に必要な値(topic/payload/options)を組み立てる。
-        ['payload' => $payload] = $this->preparePublishRequest($csvFilePath);
+        $csvFilePath = $this->csvGenerator->generate();
+        $payload = json_encode([
+            'message' => $csvFilePath,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         // Mercureへメッセージを送信する。
         $result = mercure_publish(
             $request['topic'] ?? 'message',
             $payload,
-            (bool) ($options['private'] ?? false),
-            (string) ($options['id'] ?? ''),
-            (string) ($options['type'] ?? ''),
-            (int) ($options['retry'] ?? -1),
         );
 
         // クライアント向けに、送信内容と結果をJSONで返却する。
         return response()->json([
-            'ok' => true,
             'payload' => $payload,
             'result' => $result,
         ]);
-    }
-
-
-    private function preparePublishRequest(string $fileName): array
-    {
-        $payload = [
-            'message' => $fileName,
-            'published_at' => now()->toIso8601String(),
-        ];
-        $payload = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-
-        return [
-            'payload' => $payload,
-        ];
-    }
-
-    private function generateCsv(): string
-    {
-        sleep(1);
-        $jobId = uniqid('csv_', more_entropy: true);
-        $fileName = "{$jobId}.csv";
-        $csvDir = storage_path('app/csv_files');
-        if (! is_dir($csvDir)) {
-            mkdir($csvDir, 0755, true);
-        }
-        $fileName = "{$csvDir}/{$fileName}";
-        $fp = fopen($fileName, 'w');
-        fputcsv($fp, ['id', 'name', 'email', 'created_at']);
-
-        for ($i = 1; $i <= 100; $i++) {
-            fputcsv($fp, [
-                $i,
-                "ユーザー {$i}",
-                "user{$i}@example.com",
-                now()->subDays(rand(0, 365))->toDateString(),
-            ]);
-        }
-
-        fclose($fp);
-
-        return $fileName;
     }
 }

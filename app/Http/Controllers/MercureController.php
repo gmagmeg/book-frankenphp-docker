@@ -69,10 +69,10 @@ class MercureController extends Controller
             $payload,
         );
 
-        // クライアント向けに、送信内容と結果をJSONで返却する。
+        // クライアント向けに、CSVパスとメッセージをJSONで返却する。
         return response()->json([
-            'payload' => $payload,
-            'result' => $result,
+            'path'    => $csvFilePath,
+            'message' => 'CSVの準備が整いました',
         ]);
     }
 }

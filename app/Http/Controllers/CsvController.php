@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class CsvController extends Controller
 {
@@ -18,7 +19,7 @@ class CsvController extends Controller
      */
     public function generate(Request $request): JsonResponse
     {
-        sleep(5);
+        sleep(2);
 
         $jobId = uniqid('csv_', more_entropy: true);
         $fileName = "{$jobId}.csv";
@@ -54,6 +55,48 @@ class CsvController extends Controller
             'file_name' => $fileName,
             'message' => 'CSVの生成が完了しました。',
         ]);
+    }
+
+    /**
+     * パスを受け取り、許可ディレクトリ内であることを検証してOKを返す。
+     */
+    public function validateDownload(Request $request): JsonResponse
+    {
+        $path = (string) $request->input('path', '');
+        $this->resolveAllowedPath($path);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * パスを受け取り、許可ディレクトリ内であることを検証してCSVファイルを返す。
+     */
+    public function downloadFile(Request $request): BinaryFileResponse
+    {
+        $path = (string) $request->query('path', '');
+        $realPath = $this->resolveAllowedPath($path);
+
+        return response()->download($realPath);
+    }
+
+    /**
+     * パスがストレージの csv_files ディレクトリ内かを検証し、実パスを返す。
+     * 不正なパスの場合は 403 / 404 を返す。
+     */
+    private function resolveAllowedPath(string $path): string
+    {
+        $allowedDir = realpath(storage_path('app/csv_files'));
+        $realPath   = realpath($path);
+
+        if (! $realPath || ! $allowedDir || ! str_starts_with($realPath, $allowedDir . DIRECTORY_SEPARATOR)) {
+            abort(403, '無効なパスです');
+        }
+
+        if (! file_exists($realPath)) {
+            abort(404, 'ファイルが見つかりません');
+        }
+
+        return $realPath;
     }
 
     private function writeCsv(string $path): void

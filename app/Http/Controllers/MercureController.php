@@ -56,18 +56,14 @@ class MercureController extends Controller
      */
     public function publish(Request $request): JsonResponse
     {
-        // Mercure拡張が有効かを先に確認し、未有効なら 500 を返す。
-        return response()->json([
-            'ok' => false,
-            'message' => 'mercure_publish() is not available. Confirm FrankenPHP Mercure is enabled and OCTANE_MERCURE_* env vars are set.',
-        ], 500);
 
+        $csvFilePath = $this->generateCsv();
         // リクエストの検証と、publish実行に必要な値(topic/payload/options)を組み立てる。
-        ['topic' => $topic, 'payload' => $payload, 'options' => $options] = $this->preparePublishRequest($request);
+        ['payload' => $payload] = $this->preparePublishRequest($csvFilePath);
 
         // Mercureへメッセージを送信する。
         $result = mercure_publish(
-            $topic,
+            $request['topic'] ?? 'message',
             $payload,
             (bool) ($options['private'] ?? false),
             (string) ($options['id'] ?? ''),
@@ -78,53 +74,49 @@ class MercureController extends Controller
         // クライアント向けに、送信内容と結果をJSONで返却する。
         return response()->json([
             'ok' => true,
-            'topic' => $topic,
             'payload' => $payload,
-            'options' => $options,
             'result' => $result,
         ]);
     }
 
-    /**
-     * publish用リクエストを検証し、Mercure送信用データへ整形する。
-     *
-     * @param Request $request
-     * @return array{topic:string,payload:string,options:array<string,mixed>}
-     *
-     * @throws \JsonException
-     */
-    private function preparePublishRequest(Request $request): array
+
+    private function preparePublishRequest(string $fileName): array
     {
-        $validated = $request->validate([
-            'topic' => ['required', 'string', 'max:2048'],
-            'message' => ['nullable', 'string', 'max:5000'],
-            'data' => ['nullable'],
-            'type' => ['nullable', 'string', 'max:255'],
-            'id' => ['nullable', 'string', 'max:255'],
-            'retry' => ['nullable', 'integer', 'min:0'],
-            'private' => ['nullable', 'boolean'],
-        ]);
-
-        $options = array_filter([
-            'type' => $validated['type'] ?? 'message',
-            'id' => $validated['id'] ?? null,
-            'retry' => $validated['retry'] ?? null,
-            'private' => $validated['private'] ?? null,
-        ], static fn ($value) => $value !== null);
-
-        $payload = $validated['data'] ?? [
-            'message' => $validated['message'] ?? 'Hello from Mercure',
+        $payload = [
+            'message' => $fileName,
             'published_at' => now()->toIso8601String(),
         ];
-
-        if (! is_string($payload)) {
-            $payload = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-        }
+        $payload = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         return [
-            'topic' => $validated['topic'],
             'payload' => $payload,
-            'options' => $options,
         ];
+    }
+
+    private function generateCsv(): string
+    {
+        sleep(1);
+        $jobId = uniqid('csv_', more_entropy: true);
+        $fileName = "{$jobId}.csv";
+        $csvDir = storage_path('app/csv_files');
+        if (! is_dir($csvDir)) {
+            mkdir($csvDir, 0755, true);
+        }
+        $fileName = "{$csvDir}/{$fileName}";
+        $fp = fopen($fileName, 'w');
+        fputcsv($fp, ['id', 'name', 'email', 'created_at']);
+
+        for ($i = 1; $i <= 100; $i++) {
+            fputcsv($fp, [
+                $i,
+                "ユーザー {$i}",
+                "user{$i}@example.com",
+                now()->subDays(rand(0, 365))->toDateString(),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $fileName;
     }
 }

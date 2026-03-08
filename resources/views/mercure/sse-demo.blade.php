@@ -35,17 +35,8 @@
             gap: 8px;
             margin-bottom: 12px;
         }
-        input, textarea, button {
-            font: inherit;
-        }
-        input, textarea {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 10px 12px;
-        }
         button {
+            font: inherit;
             border: 0;
             border-radius: 8px;
             padding: 10px 14px;
@@ -79,30 +70,11 @@
 <body>
 <main class="container">
     <section class="card">
-        <h1 class="title">FrankenPHP Mercure SSE Demo</h1>
-        <p class="status">Hub URL: <code id="hubUrl">/.well-known/mercure</code></p>
-        <div class="row">
-            <label for="topic">Topic</label>
-            <input id="topic" type="text" value="{{ $defaultTopic }}">
-        </div>
+        <h2 class="title">CSVダウンロード</h2>
         <div class="buttons">
-            <button id="connectBtn" type="button">Connect SSE</button>
-            <button id="disconnectBtn" class="secondary" type="button">Disconnect</button>
+            <button id="downloadBtn" type="button">CSVダウンロード</button>
         </div>
-        <p id="connectionStatus" class="status">Not connected</p>
-    </section>
-
-    <section class="card">
-        <h2 class="title">Publish API</h2>
-        <form id="publishForm">
-            <div class="row">
-                <label for="message">Message</label>
-                <textarea id="message" rows="4" placeholder="Hello Mercure!"></textarea>
-            </div>
-            <div class="buttons">
-                <button type="submit">POST /api/mercure/publish</button>
-            </div>
-        </form>
+        <p id="downloadStatus" class="status"></p>
     </section>
 
     <section class="card">
@@ -112,15 +84,9 @@
 </main>
 
 <script>
-    const topicInput = document.getElementById('topic');
-    const messageInput = document.getElementById('message');
-    const connectBtn = document.getElementById('connectBtn');
-    const disconnectBtn = document.getElementById('disconnectBtn');
-    const publishForm = document.getElementById('publishForm');
     const logsEl = document.getElementById('logs');
-    const connectionStatus = document.getElementById('connectionStatus');
-
-    let eventSource = null;
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadStatus = document.getElementById('downloadStatus');
 
     function logLine(label, payload) {
         const time = new Date().toISOString();
@@ -128,58 +94,10 @@
         logsEl.textContent = `${line}\n${logsEl.textContent}`;
     }
 
-    function connect() {
-        const topic = topicInput.value.trim();
-        if (!topic) {
-            logLine('error', 'topic is required');
-            return;
-        }
-
-        if (eventSource) {
-            eventSource.close();
-        }
-
-        const hubUrl = `/.well-known/mercure?topic=${encodeURIComponent(topic)}`;
-        eventSource = new EventSource(hubUrl);
-        connectionStatus.textContent = `Connecting: ${hubUrl}`;
-
-        eventSource.onopen = () => {
-            connectionStatus.textContent = `Connected: ${hubUrl}`;
-            logLine('sse-open', hubUrl);
-        };
-
-        eventSource.onmessage = (event) => {
-            let parsed = event.data;
-            try {
-                parsed = JSON.parse(event.data);
-            } catch (e) {
-                // Keep raw text if data is not JSON.
-            }
-            logLine('sse-message', parsed);
-        };
-
-        eventSource.onerror = () => {
-            connectionStatus.textContent = 'Connection error (Mercure hub may reconnect automatically)';
-            logLine('sse-error', 'connection error');
-        };
-    }
-
-    function disconnect() {
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
-            connectionStatus.textContent = 'Disconnected';
-            logLine('sse-close', 'closed by client');
-        }
-    }
-
-    connectBtn.addEventListener('click', connect);
-    disconnectBtn.addEventListener('click', disconnect);
-
-    publishForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const topic = topicInput.value.trim();
-        const message = messageInput.value;
+    downloadBtn.addEventListener('click', async () => {
+        downloadBtn.disabled = true;
+        downloadStatus.textContent = 'リクエスト送信中…';
+        logLine('download-request', 'POST /api/mercure/publish');
 
         const response = await fetch('/api/mercure/publish', {
             method: 'POST',
@@ -187,15 +105,18 @@
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ topic, message }),
+            body: JSON.stringify({}),
         });
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            logLine('publish-error', body);
-            return;
+            downloadStatus.textContent = 'エラー';
+            logLine('download-error', body);
+        } else {
+            downloadStatus.textContent = '完了';
+            logLine('download-ok', body);
         }
-        logLine('publish-ok', body);
+        downloadBtn.disabled = false;
     });
 </script>
 </body>

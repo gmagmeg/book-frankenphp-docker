@@ -51,6 +51,20 @@ class MercureController extends Controller
     }
 
     /**
+     * CSV ダウンロード受信画面を表示する。
+     *
+     * @return View
+     */
+    public function csvDownload(): View
+    {
+        $topic = rtrim((string) config('app.url'), '/').'/mercure/demo/topic';
+
+        return view('mercure.csv-download', [
+            'topic' => $topic,
+        ]);
+    }
+
+    /**
      * Mercureにメッセージを公開し、送信結果をJSONで返す。
      *
      * @param Request $request
@@ -58,21 +72,21 @@ class MercureController extends Controller
      */
     public function publish(Request $request): JsonResponse
     {
+        $topic = rtrim((string) config('app.url'), '/').'/mercure/demo/topic';
+
         $csvFilePath = $this->csvGenerator->generate();
         $payload = json_encode([
-            'message' => $csvFilePath,
+            'path'    => $csvFilePath,
+            'message' => 'CSVの準備が整いました',
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         // Mercureへメッセージを送信する。
-        $result = mercure_publish(
-            $request['topic'] ?? 'message',
-            $payload,
-        );
+        mercure_publish($topic, $payload);
 
-        // クライアント向けに、CSVパスとメッセージをJSONで返却する。
+        // クライアント向けに、トピックと完了メッセージをJSONで返却する。
         return response()->json([
-            'path'    => $csvFilePath,
-            'message' => 'CSVの準備が整いました',
+            'topic'   => $topic,
+            'message' => '生成完了 — CSV ダウンロードページに通知が届きます',
         ]);
     }
 }

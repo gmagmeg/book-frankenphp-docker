@@ -8,7 +8,7 @@ class CsvGeneratorService
     {
         sleep(1);
         $jobId = uniqid('csv_', more_entropy: true);
-        $csvDir = storage_path('app/csv_files');
+        $csvDir = base_path('private-files');
         if (! is_dir($csvDir)) {
             mkdir($csvDir, 0755, true);
         }

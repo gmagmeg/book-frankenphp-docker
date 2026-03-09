@@ -28,8 +28,6 @@ class DownloadController extends Controller
         // X-Sendfile-Type ヘッダーを信頼し、FrankenPHP に配信を委譲する
         BinaryFileResponse::trustXSendfileTypeHeader();
 
-        return response()->file($path, [
-            'Content-Disposition' => 'attachment; filename="' . basename($path) . '"',
-        ]);
+        return new BinaryFileResponse($path);
     }
 }

@@ -30,6 +30,12 @@
             margin: 0 0 8px;
             font-size: 20px;
         }
+        .description {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+        }
         button {
             font: inherit;
             border: 0;
@@ -42,9 +48,6 @@
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-        button.secondary {
-            background: #374151;
         }
         .buttons {
             display: flex;
@@ -64,78 +67,43 @@
             font-size: 14px;
             color: #334155;
         }
-
-        /* ── Modal ── */
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 100;
+        .hint {
+            display: flex;
             align-items: flex-start;
-            justify-content: center;
-            padding-top: 48px;
-        }
-        .modal-backdrop.open {
-            display: flex;
-        }
-        .modal {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            padding: 24px;
-            width: min(480px, 92vw);
-        }
-        .modal-header {
-            display: flex;
-            align-items: center;
             gap: 10px;
-            margin-bottom: 12px;
-        }
-        .modal-icon {
-            font-size: 22px;
-            line-height: 1;
-        }
-        .modal-title {
-            margin: 0;
-            font-size: 17px;
-            font-weight: 600;
-        }
-        .modal-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 12px 14px;
             font-size: 14px;
-            color: #374151;
-            margin: 0 0 20px;
+            color: #166534;
             line-height: 1.6;
         }
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .modal-actions a {
-            display: inline-block;
-            font: inherit;
-            border: 0;
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: #fff;
-            background: #0f766e;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .modal-actions a:hover {
-            background: #0d6461;
-        }
-        #dlLink {
-            display: none;
+        .hint a {
+            color: #15803d;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
 <main class="container">
     <section class="card">
-        <h2 class="title">CSVダウンロード</h2>
+        <h2 class="title">CSV 生成 (発行ページ)</h2>
+        <p class="description">
+            ボタンを押すと CSV を生成し、Mercure Hub へ通知を送信します。<br>
+            通知は <strong>このページとは別の</strong> CSV ダウンロードページで受信します。
+        </p>
+        <div class="hint">
+            <span>💡</span>
+            <span>
+                先に <a href="/mercure/csv-download" target="_blank">CSV ダウンロードページ</a> を別タブで開いてから、下のボタンを押してください。<br>
+                別タブにダウンロードモーダルが表示されます。
+            </span>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2 class="title">CSV 生成</h2>
         <div class="buttons">
             <button id="generateBtn" type="button">CSV 生成</button>
         </div>
@@ -148,33 +116,10 @@
     </section>
 </main>
 
-<!-- Modal -->
-<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal">
-        <div class="modal-header">
-            <span class="modal-icon">✅</span>
-            <h3 class="modal-title">CSV 準備完了</h3>
-        </div>
-        <p id="modalMessage" class="modal-message"></p>
-        <div class="modal-actions">
-            <button id="csvDlBtn" type="button">CSV をダウンロードする</button>
-            <a id="dlLink" href="#">ダウンロード開始</a>
-            <button id="modalCloseBtn" type="button" class="secondary">閉じる</button>
-        </div>
-    </div>
-</div>
-
 <script>
-    const logsEl        = document.getElementById('logs');
-    const generateBtn   = document.getElementById('generateBtn');
+    const logsEl         = document.getElementById('logs');
+    const generateBtn    = document.getElementById('generateBtn');
     const generateStatus = document.getElementById('generateStatus');
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const modalMessage  = document.getElementById('modalMessage');
-    const csvDlBtn      = document.getElementById('csvDlBtn');
-    const dlLink        = document.getElementById('dlLink');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-
-    let pendingPath = null;
 
     function logLine(label, payload) {
         const time = new Date().toISOString();
@@ -182,20 +127,7 @@
         logsEl.textContent = `${line}\n${logsEl.textContent}`;
     }
 
-    function openModal(message) {
-        modalMessage.textContent = message;
-        csvDlBtn.disabled = false;
-        csvDlBtn.textContent = 'CSV をダウンロードする';
-        dlLink.style.display = 'none';
-        modalBackdrop.classList.add('open');
-    }
-
-    function closeModal() {
-        modalBackdrop.classList.remove('open');
-        pendingPath = null;
-    }
-
-    // ── Step 1: CSV 生成リクエスト ──────────────────────────
+    // ── CSV 生成リクエスト ──────────────────────────────────────────────────
     generateBtn.addEventListener('click', async () => {
         generateBtn.disabled = true;
         generateStatus.textContent = 'CSV を生成中…';
@@ -213,51 +145,11 @@
             generateStatus.textContent = 'エラーが発生しました';
             logLine('publish-error', body);
         } else {
-            generateStatus.textContent = '生成完了 — モーダルを確認してください';
+            generateStatus.textContent = body.message ?? '生成完了';
             logLine('publish-ok', body);
-            pendingPath = body.path;
-            openModal(body.message ?? 'CSVの準備が整いました');
         }
 
         generateBtn.disabled = false;
-    });
-
-    // ── Step 2: パスをバックエンドに送信して検証 ────────────
-    csvDlBtn.addEventListener('click', async () => {
-        if (!pendingPath) return;
-
-        csvDlBtn.disabled = true;
-        csvDlBtn.textContent = '確認中…';
-        logLine('validate-request', 'POST /api/csv/download');
-
-        const response = await fetch('/api/csv/download', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ path: pendingPath }),
-        });
-
-        const body = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            csvDlBtn.disabled = false;
-            csvDlBtn.textContent = 'CSV をダウンロードする';
-            logLine('validate-error', body);
-            modalMessage.textContent = 'パスの検証に失敗しました。';
-        } else {
-            logLine('validate-ok', body);
-            // ── Step 3: DL ボタンを表示 ──────────────────────
-            const url = `/api/csv/download?path=${encodeURIComponent(pendingPath)}`;
-            dlLink.href = url;
-            dlLink.download = pendingPath.split('/').pop();
-            dlLink.style.display = 'inline-block';
-            csvDlBtn.style.display = 'none';
-        }
-    });
-
-    // モーダルを閉じる
-    modalCloseBtn.addEventListener('click', closeModal);
-    modalBackdrop.addEventListener('click', (e) => {
-        if (e.target === modalBackdrop) closeModal();
     });
 </script>
 </body>

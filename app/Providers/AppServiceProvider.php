@@ -3,18 +3,11 @@
 namespace App\Providers;
 
 use App\Octane\NgPatterns\Pattern2\ReportContext;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Kept in-memory per worker process.
-     */
-    private static ?float $bootedAt = null;
-    private static int $bootCount = 0;
-    private static int $requestCount = 0;
-
     /**
      * Register any application services.
      */
@@ -31,32 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        self::$bootCount++;
-        self::$bootedAt ??= microtime(true);
-
-        Log::info('boot-probe: app booted', [
-            'pid' => getmypid(),
-            'boot_count' => self::$bootCount,
-            'booted_at' => self::$bootedAt,
-        ]);
-    }
-
-    /**
-     * Used by a debug route to prove the worker keeps boot state across requests.
-     */
-    public static function recordBootProbeRequest(): array
-    {
-        self::$requestCount++;
-
-        $payload = [
-            'pid' => getmypid(),
-            'boot_count' => self::$bootCount,
-            'request_count' => self::$requestCount,
-            'booted_at' => self::$bootedAt,
-        ];
-
-        Log::info('boot-probe: request handled', $payload);
-
-        return $payload;
+        // FrankenPHP の X-Sendfile に対応する。
+        // リクエストの X-Sendfile-Type ヘッダーを信頼し、
+        // BinaryFileResponse が X-Sendfile レスポンスヘッダーを自動付与するようにする。
+        // Octane ではワーカー起動時に1回だけ呼べば十分。
+        BinaryFileResponse::trustXSendfileTypeHeader();
     }
 }

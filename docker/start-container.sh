@@ -20,5 +20,5 @@ exec php artisan octane:frankenphp \
   --port="${APP_PORT:-8000}" \
   --workers="${OCTANE_WORKERS:-4}" \
   --max-requests="${OCTANE_MAX_REQUESTS:-500}" \
-  --caddyfile=/app/Caddyfile \
+  --https \
   --watch
